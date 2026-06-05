@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@xhacker/kgmwasm": "^1.0.0",
+    "@xhacker/qmcwasm": "^1.0.0"
+  }
+}
