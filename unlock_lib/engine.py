@@ -33,13 +33,16 @@ def _load_handlers():
     }
 
 
-def decrypt_file(input_path: str, output_dir: str, failed_dir: str = None) -> dict:
+def decrypt_file(input_path: str, output_dir: str, failed_dir: str = None,
+                 cookie: str = None, localdb=None) -> dict:
     """Decrypt a single encrypted music file.
 
     Args:
         input_path: Path to encrypted file
         output_dir: Directory for decrypted output
         failed_dir: Optional directory to copy failed files
+        cookie:     QQ 音乐登录 cookie(QMCv2/musicex 新格式必需)
+        localdb:    qq_api.LocalDB 实例(O 前缀文件反查 songmid,可选)
 
     Returns:
         dict with keys: success, input_path, output_path, format, error, size
@@ -83,12 +86,16 @@ def decrypt_file(input_path: str, output_dir: str, failed_dir: str = None) -> di
     # Find and run handler
     try:
         decrypted = None
-        handler_ext = ext
 
-        for name, (detector, handler) in _HANDLERS.items():
-            if detector(ext):
-                decrypted = handler(data, ext)
-                break
+        from unlock_lib import qmc
+        if qmc.detect(ext):
+            # QQ 音乐:智能路由(内嵌 key→WASM;musicex/无 footer→API 取 ekey)
+            decrypted = qmc.decrypt_qq(data, fname, cookie=cookie, localdb=localdb)
+        else:
+            for name, (detector, handler) in _HANDLERS.items():
+                if detector(ext):
+                    decrypted = handler(data, ext)
+                    break
 
         if decrypted is None:
             result['error'] = f'No handler for format: .{ext}'
@@ -138,7 +145,8 @@ def decrypt_file(input_path: str, output_dir: str, failed_dir: str = None) -> di
 
 def decrypt_directory(input_dir: str, output_dir: str,
                       failed_dir: str = None,
-                      progress_callback=None) -> dict:
+                      progress_callback=None,
+                      cookie: str = None, localdb=None) -> dict:
     """Decrypt all encrypted files in a directory recursively.
 
     Args:
@@ -171,7 +179,7 @@ def decrypt_directory(input_dir: str, output_dir: str,
         if progress_callback:
             progress_callback(idx, total, os.path.basename(filepath))
 
-        r = decrypt_file(filepath, output_dir, failed_dir)
+        r = decrypt_file(filepath, output_dir, failed_dir, cookie=cookie, localdb=localdb)
         results.append(r)
 
         if r['success']:
