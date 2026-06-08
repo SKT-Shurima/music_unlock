@@ -8,6 +8,7 @@ and writes decrypted output with proper file extension.
 import os
 import sys
 from unlock_lib import audio_utils
+from unlock_lib import metadata
 
 # Format handlers — each has detect(ext) and decrypt(data, ext)
 _HANDLERS = {}
@@ -129,6 +130,14 @@ def decrypt_file(input_path: str, output_dir: str, failed_dir: str = None,
         result['output_path'] = out_path
         result['size'] = len(decrypted)
 
+        # 增强:尝试按歌曲元数据(歌名+歌手)重命名输出文件
+        try:
+            renamed = metadata.rename_by_metadata(out_path)
+            if renamed != out_path:
+                result['output_path'] = renamed
+        except Exception:
+            pass  # 重命名失败不影响解密结果
+
     except Exception as e:
         result['error'] = str(e)
         # Copy failed file
@@ -158,9 +167,17 @@ def decrypt_directory(input_dir: str, output_dir: str,
     Returns:
         dict with keys: total, success, failed, results[]
     """
-    os.makedirs(output_dir, exist_ok=True)
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except FileExistsError:
+        print(f"  错误: 输出路径已存在且是文件(非目录): {output_dir}", file=sys.stderr)
+        return {'total': 0, 'success': 0, 'failed': 0, 'results': []}
     if failed_dir:
-        os.makedirs(failed_dir, exist_ok=True)
+        try:
+            os.makedirs(failed_dir, exist_ok=True)
+        except FileExistsError:
+            print(f"  错误: 失败目录路径已存在且是文件(非目录): {failed_dir}", file=sys.stderr)
+            failed_dir = None
 
     # Collect encrypted files
     encrypted_files = []

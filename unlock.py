@@ -4,6 +4,7 @@ music-tool — 加密音乐解密引擎(纯解密,不扫描/不分类)。
 
 用法:
   python3 unlock.py decrypt <输入目录> <输出目录> [选项]
+  python3 unlock.py rename <目录> [--dry-run]
 
 选项:
   --failed-dir <dir>     失败文件拷贝到此目录
@@ -80,6 +81,32 @@ def cmd_decrypt(args):
           f"(共 {result['total']})")
 
 
+def cmd_rename(args):
+    """Batch-rename audio files by embedded metadata (Title - Artist)."""
+    if len(args) < 1:
+        print("用法: unlock.py rename <目录> [--dry-run]")
+        sys.exit(1)
+
+    directory = args[0]
+    dry_run = '--dry-run' in args
+
+    if not os.path.isdir(directory):
+        print(f"错误: 目录不存在: {directory}")
+        sys.exit(1)
+
+    from unlock_lib import metadata
+
+    if dry_run:
+        print(f"预览模式: {directory}\n")
+
+    result = metadata.rename_directory(directory, dry_run=dry_run)
+
+    print(f"\n完成: 扫描 {result['total']} 个文件, "
+          f"重命名 {result['renamed']} 个, "
+          f"跳过 {result['skipped']} 个"
+          + (f", 重名处理 {result['duplicates']} 个" if result['duplicates'] else ""))
+
+
 def cmd_help():
     print(__doc__)
 
@@ -94,6 +121,8 @@ def main():
 
     if cmd == 'decrypt':
         cmd_decrypt(args)
+    elif cmd == 'rename':
+        cmd_rename(args)
     elif cmd in ('--help', '-h', 'help'):
         cmd_help()
     else:

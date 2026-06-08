@@ -62,7 +62,9 @@ ENCRYPTED_EXTENSIONS = {
     'bkcmp3':  'mp3',    'bkcflac': 'flac',   'bkcwav':  'wav',
     'bkcogg':  'ogg',    'bkcwma':  'wma',    'bkcape':  'ape',
     'bkcm4a':  'm4a',    'tkm':     'm4a',
-    # QQ Music cache
+    # QQ Music cache (hex-encoded extensions from cache naming)
+    '666c6163': 'flac',  '6d7033':  'mp3',   '6f6767':  'ogg',
+    '6d3461':  'm4a',    '776176':  'wav',
     'uc':      'mp3',    'uc!':     'mp3',
     # QQ Music old (TM)
     'tm0':     'm4a',    'tm2':     'm4a',    'tm3':     'm4a',

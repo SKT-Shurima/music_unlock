@@ -49,6 +49,19 @@ music-tool decrypt <输入目录> [输出目录] [选项]
 
 不指定输出目录时，默认输出到 `<输入目录>/decrypted`。
 
+### 按元数据批量重命名
+
+解密后文件名可能是 QQ 音乐的随机 ID（如 `F0M00006oypR46bcLX.flac`）。
+`rename` 命令读取音频文件的 TITLE/ARTIST 元数据，自动重命名为 `歌曲名 - 歌手.ext`：
+
+```bash
+music-tool rename <目录> [--dry-run]
+```
+
+- `--dry-run` — 预览模式，只显示将会如何重命名，不实际修改文件
+- 重名文件自动追加序号（如 `遗失的心跳 - 萧亚轩 (2).flac`）
+- 依赖 ffprobe（ffmpeg 自带）；缺失时静默跳过
+
 ### 选项
 
 | 选项 | 说明 |

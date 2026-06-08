@@ -31,6 +31,7 @@ ${BOLD}music-tool v${VERSION}${NC} — 加密音乐解密工具(纯解密)
 ${BOLD}用法:${NC}
   music-tool setup                       初始化环境(首次使用)
   music-tool decrypt <输入目录> [输出目录] [选项]
+  music-tool rename <目录> [--dry-run]   按歌曲元数据批量重命名
 
 ${BOLD}选项:${NC}
   --cookie '<qqmusic_key=...>'   QQ 音乐登录 cookie(解密 QQ 新格式 musicex 必需)
@@ -44,6 +45,12 @@ ${BOLD}示例:${NC}
 
   # 解密含 QQ 新格式(musicex/QMCv2),需登录 cookie
   music-tool decrypt ~/Downloads/qq ~/Music/out --cookie 'qqmusic_key=XXXX'
+
+  # 按歌曲元数据重命名(预览模式)
+  music-tool rename ~/Music/songs --dry-run
+
+  # 按歌曲元数据重命名(正式执行)
+  music-tool rename ~/Music/songs
 
 ${BOLD}如何获取 cookie:${NC}
   浏览器登录 https://y.qq.com → F12 → Application → Cookies → 复制 qqmusic_key 的值。
@@ -139,6 +146,37 @@ do_decrypt() {
 }
 
 # ============================================================
+# 重命名(按歌曲元数据重命名音频文件)
+# ============================================================
+do_rename() {
+  local target_dir=""
+  local extra=()
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --dry-run) extra+=("$1"); shift ;;
+      *)
+        if [ -z "$target_dir" ]; then target_dir="$1"
+        fi
+        shift ;;
+    esac
+  done
+
+  if [ -z "$target_dir" ]; then
+    echo -e "${RED}错误: 请指定目录${NC}"
+    echo "用法: music-tool rename <目录> [--dry-run]"
+    exit 1
+  fi
+  if [ ! -d "$target_dir" ]; then
+    echo -e "${RED}错误: 目录不存在: $target_dir${NC}"
+    exit 1
+  fi
+
+  header "按元数据重命名: $target_dir"
+  python3 "$UNLOCK_PY" rename "$target_dir" "${extra[@]}"
+}
+
+# ============================================================
 # 主入口
 # ============================================================
 main() {
@@ -148,6 +186,7 @@ main() {
   case "$cmd" in
     setup)         do_setup "$@" ;;
     decrypt)       do_decrypt "$@" ;;
+    rename)        do_rename "$@" ;;
     -h|--help|help|"") usage ;;
     *)
       echo -e "${RED}未知命令: $cmd${NC}"
