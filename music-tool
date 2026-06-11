@@ -139,7 +139,7 @@ do_decrypt() {
   mkdir -p "$out_dir"
 
   header "解密: $src_dir → $out_dir"
-  python3 "$UNLOCK_PY" decrypt "$src_dir" "$out_dir" "${extra[@]}"
+  python3 "$UNLOCK_PY" decrypt "$src_dir" "$out_dir" ${extra:+"${extra[@]}"}
 
   echo ""
   ok "完成。解密文件位于: $out_dir"
@@ -173,7 +173,7 @@ do_rename() {
   fi
 
   header "按元数据重命名: $target_dir"
-  python3 "$UNLOCK_PY" rename "$target_dir" "${extra[@]}"
+  python3 "$UNLOCK_PY" rename "$target_dir" ${extra:+"${extra[@]}"}
 }
 
 # ============================================================
